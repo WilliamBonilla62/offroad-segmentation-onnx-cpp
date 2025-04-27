@@ -1,0 +1,17 @@
+
+services:
+  offroad:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    volumes:
+      - .:/workspace  # Mount current dir into /workspace
+    working_dir: /workspace
+    command: zsh
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]

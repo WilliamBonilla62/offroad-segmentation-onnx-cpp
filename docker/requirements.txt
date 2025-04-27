@@ -1,0 +1,9 @@
+opencv-python
+matplotlib
+numpy
+scikit-learn
+onnx
+onnxruntime
+tqdm
+pycocotools
+super-gradients

@@ -1,0 +1,48 @@
+FROM nvidia/cuda:12.8.0-devel-ubuntu22.04
+# Avoid tzdata asking questions during install
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    cmake \
+    git \
+    wget \
+    unzip \
+    libopencv-dev \
+    libgl1-mesa-glx \
+    zsh curl \
+    pip \
+    python3-pip \
+    python3-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Reset DEBIAN_FRONTEND
+ENV DEBIAN_FRONTEND=dialog
+
+# Then rest of your Dockerfile...
+
+
+# Set zsh as the default shell
+SHELL ["/bin/zsh", "-c"]
+
+# Optional: install oh-my-zsh (cleaner shell)
+RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+# Install PyTorch (with specific CUDA version 12.8 wheels)
+RUN pip install --upgrade pip && \
+    pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
+
+# Install Python packages
+COPY docker/requirements.txt /tmp/
+RUN pip install --upgrade pip && pip install -r /tmp/requirements.txt
+
+# Install ONNX Runtime C++ binaries
+RUN mkdir -p /opt/onnxruntime && \
+    cd /opt/onnxruntime && \
+    wget https://github.com/microsoft/onnxruntime/releases/download/v1.17.0/onnxruntime-linux-x64-1.17.0.tgz && \
+    tar -xzf onnxruntime-linux-x64-1.17.0.tgz && \
+    rm onnxruntime-linux-x64-1.17.0.tgz
+
+ENV ONNXRUNTIME_DIR=/opt/onnxruntime/onnxruntime-linux-x64-1.17.0
+ENV CMAKE_PREFIX_PATH=${ONNXRUNTIME_DIR}
+
+WORKDIR /workspace
