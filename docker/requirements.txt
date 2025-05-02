@@ -1,3 +1,7 @@
+torch
+torchvision
+torchaudio
+torchmetrics
 opencv-python
 matplotlib
 numpy
@@ -7,3 +11,6 @@ onnxruntime
 tqdm
 pycocotools
 super-gradients
+wandb
+pillow
+pandas

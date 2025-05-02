@@ -176,3 +176,5 @@ output/
 dataset/test/
 dataset/train/
 dataset/val/
+dataset/goose-dataset/
+wandb/

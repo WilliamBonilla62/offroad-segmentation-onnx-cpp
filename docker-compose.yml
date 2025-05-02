@@ -10,6 +10,8 @@ services:
     command: zsh
     deploy:
       resources:
+        limits:
+          memory: 60G
         reservations:
           devices:
             - driver: nvidia
