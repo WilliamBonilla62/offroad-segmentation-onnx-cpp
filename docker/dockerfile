@@ -1,7 +1,7 @@
 FROM nvidia/cuda:12.4.0-devel-ubuntu22.04
 # Avoid tzdata asking questions during install
 ENV DEBIAN_FRONTEND=noninteractive
-
+ENV PIP_ROOT_USER_ACTION=ignore
 RUN apt-get update && apt-get install -y \
     build-essential \
     cmake \
@@ -34,15 +34,26 @@ RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master
 # Install Python packages
 COPY docker/requirements.txt /tmp/
 RUN pip install --upgrade pip && pip install -r /tmp/requirements.txt
+# Install Detectron2 and Mask2Former dependencies
+RUN apt-get update && apt-get install -y \
+    ffmpeg \
+    libsm6 \
+    libxext6 \
+    && rm -rf /var/lib/apt/lists/*
 
-# Install ONNX Runtime C++ binaries
-# RUN mkdir -p /opt/onnxruntime && \
-#     cd /opt/onnxruntime && \
-#     wget https://github.com/microsoft/onnxruntime/releases/download/v1.21.1/onnxruntime-linux-x64-gpu-1.21.1.tgz && \
-#     tar -xzf  onnxruntime-linux-x64-gpu-1.21.1.tgz && \
-#     rm onnxruntime-linux-x64-1.17.0.tgz
+# Install PyTorch (uncomment and customize as needed)
+# RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
 
-# ENV ONNXRUNTIME_DIR=/opt/onnxruntime/onnxruntime-linux-x64-1.17.0
-#ENV CMAKE_PREFIX_PATH=${ONNXRUNTIME_DIR}
+# Clone and install Detectron2 (must match PyTorch + CUDA version)
+RUN pip install 'git+https://github.com/facebookresearch/detectron2.git'
+
+# Clone Mask2Former
+WORKDIR /workspace
+RUN git clone https://github.com/facebookresearch/Mask2Former.git
+WORKDIR /workspace/Mask2Former
+RUN pip install -r requirements.txt && pip install -e .
+# Optional: download Swin backbone configs
+RUN mkdir -p /root/.torch/fvcore_cache && \
+    wget https://dl.fbaipublicfiles.com/detectron2/ImageNetPretrained/MAE/mae_pretrain_vit_base.pth -P /root/.torch/fvcore_cache
 
 WORKDIR /workspace
